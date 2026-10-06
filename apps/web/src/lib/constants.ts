@@ -1,0 +1,2 @@
+export const DELIVERY_FEE = 300;
+export const FREE_DELIVERY_THRESHOLD = 5000;
