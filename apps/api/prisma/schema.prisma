@@ -83,6 +83,7 @@ model Order {
   customerPhone   String
   customerEmail   String?
   deliveryAddress String
+  deliveryCity    String        @default("")
   notes           String?
   subtotal        Decimal       @db.Decimal(10, 2)
   deliveryFee     Decimal       @default(0) @db.Decimal(10, 2)
