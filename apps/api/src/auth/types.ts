@@ -7,3 +7,4 @@ export interface JwtPayload {
 }
 
 export type AuthenticatedRequest = Request & { user: JwtPayload };
+export type OptionalAuthRequest = Request & { user?: JwtPayload };
