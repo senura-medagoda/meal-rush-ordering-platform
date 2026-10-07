@@ -51,3 +51,50 @@ export interface OrderTracking {
   createdAt: string;
   items: { productName: string; unitPrice: string; quantity: number }[];
 }
+
+export interface AdminOrderListItem {
+  id: number;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  total: string;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  orderStatus: OrderStatus;
+  createdAt: string;
+  _count: { items: number };
+}
+
+export interface AdminOrderDetail {
+  id: number;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  customerEmail: string | null;
+  deliveryAddress: string;
+  deliveryCity: string;
+  notes: string | null;
+  subtotal: string;
+  deliveryFee: string;
+  total: string;
+  paymentMethod: PaymentMethod;
+  paymentStatus: PaymentStatus;
+  orderStatus: OrderStatus;
+  createdAt: string;
+  items: { id: number; productName: string; unitPrice: string; quantity: number }[];
+  paymentLogs: {
+    id: number;
+    statusCode: number | null;
+    payherePaymentId: string | null;
+    createdAt: string;
+    payload: Record<string, string | null>;
+  }[];
+}
+
+export interface DashboardStats {
+  ordersToday: number;
+  revenueToday: string | number;
+  pendingOrders: number;
+  totalProducts: number;
+  lowStock: { id: number; name: string; stock: number }[];
+}
