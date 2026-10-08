@@ -1,6 +1,6 @@
 import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { User } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -27,12 +27,21 @@ export class AuthService {
     return this.buildAuthResult(user);
   }
 
-  async login(dto: LoginDto) {
+  /**
+   * scope 'customer': only non-admin accounts may log in here
+   * scope 'admin':    only admin accounts may log in here
+   */
+  async login(dto: LoginDto, scope: 'customer' | 'admin') {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     const passwordOk = user ? await bcrypt.compare(dto.password, user.passwordHash) : false;
+    const roleOk = user
+      ? scope === 'admin'
+        ? user.role === Role.ADMIN
+        : user.role !== Role.ADMIN
+      : false;
 
-    // Same message for "no such user" and "wrong password" so attackers can't discover emails.
-    if (!user || !passwordOk) {
+    // One message for every failure so attackers can't tell which part was wrong.
+    if (!user || !passwordOk || !roleOk) {
       throw new UnauthorizedException('Invalid email or password');
     }
     return this.buildAuthResult(user);
@@ -41,7 +50,7 @@ export class AuthService {
   async me(userId: number) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new UnauthorizedException('User no longer exists');
-    return this.publicUser(user);
+    return { ...this.publicUser(user), createdAt: user.createdAt };
   }
 
   private async buildAuthResult(user: User) {

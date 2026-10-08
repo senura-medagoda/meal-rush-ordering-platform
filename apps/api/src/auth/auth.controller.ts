@@ -37,11 +37,22 @@ export class AuthController {
     return { user };
   }
 
+  // Customer login: admin accounts are rejected here
   @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @HttpCode(200)
   async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    const { token, user } = await this.auth.login(dto);
+    const { token, user } = await this.auth.login(dto, 'customer');
+    res.cookie(COOKIE_NAME, token, this.cookieOptions());
+    return { user };
+  }
+
+  // Admin login: only admin accounts are accepted here
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Post('admin/login')
+  @HttpCode(200)
+  async adminLogin(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
+    const { token, user } = await this.auth.login(dto, 'admin');
     res.cookie(COOKIE_NAME, token, this.cookieOptions());
     return { user };
   }
