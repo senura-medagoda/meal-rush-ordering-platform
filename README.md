@@ -13,7 +13,7 @@ A full-stack, fully responsive e-commerce application for a restaurant. Customer
 | Role | Where to log in | Email | Password |
 |---|---|---|---|
 | Admin | `/admin/login` | <<admin@mealrush.lk>> | <<ChangeMe@12345>> |
-| Customer | `/login` | Register a new account, or use <<customer email>> | <<customer password>> |
+| Customer | `/login` | Register a new account |  |
 
 > **Notes for reviewers**
 > - The API runs on a free hosting tier. If the very first request is slow, the server was waking up.
