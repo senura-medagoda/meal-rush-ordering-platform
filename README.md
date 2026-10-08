@@ -55,10 +55,6 @@ A full-stack, fully responsive e-commerce application for a restaurant. Customer
 |---|---|
 | ![Checkout](docs/screenshots/checkout.png) | ![PayHere sandbox](docs/screenshots/payhere-sandbox.png) |
 
-| WhatsApp order message | Order status after payment |
-|---|---|
-| ![WhatsApp message](docs/screenshots/whatsapp-message.png) | ![Order status](docs/screenshots/order-status.png) |
-
 ### Customer account
 | Profile and order history |
 |---|
