@@ -19,10 +19,15 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
   const user = useAuthStore((s) => s.user);
   const loaded = useAuthStore((s) => s.loaded);
   const isAdmin = user?.role === 'ADMIN';
+  const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
-    if (loaded && !isAdmin) router.replace(user ? '/' : '/login');
-  }, [loaded, isAdmin, user, router]);
+    if (isLoginPage) return;
+    if (loaded && !isAdmin) router.replace(user ? '/' : '/admin/login');
+  }, [isLoginPage, loaded, isAdmin, user, router]);
+
+  // The login page is public: show it without the admin chrome
+  if (isLoginPage) return <>{children}</>;
 
   if (!loaded) return <div className="px-4 py-16 text-center text-stone-500">Checking access…</div>;
   if (!isAdmin) return null;

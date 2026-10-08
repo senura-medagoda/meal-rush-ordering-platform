@@ -143,6 +143,7 @@ export class OrdersService {
     return this.prisma.order.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
+      take: 50, // latest 50 orders
       select: trackingSelect,
     });
   }

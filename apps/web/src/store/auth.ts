@@ -13,6 +13,7 @@ interface AuthState {
   loaded: boolean;
   fetchMe: () => Promise<void>;
   login: (email: string, password: string) => Promise<AuthUser>;
+  adminLogin: (email: string, password: string) => Promise<AuthUser>;
   register: (name: string, email: string, password: string) => Promise<AuthUser>;
   logout: () => Promise<void>;
 }
@@ -32,6 +33,15 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   login: async (email, password) => {
     const { user } = await apiFetch<{ user: AuthUser }>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    set({ user, loaded: true });
+    return user;
+  },
+
+  adminLogin: async (email, password) => {
+    const { user } = await apiFetch<{ user: AuthUser }>('/auth/admin/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
     });
