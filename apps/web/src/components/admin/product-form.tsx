@@ -1,8 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import { useRef, useState } from 'react';
+import type { ChangeEvent, FormEvent, ReactNode } from 'react';
 import { ApiError, apiFetch } from '@/lib/api';
 import { useApiData } from '@/hooks/use-api-data';
 import type { Category, Product } from '@/lib/types';
@@ -10,6 +11,9 @@ import { ErrorBox } from './ui';
 
 const inputClass =
   'w-full rounded-xl border border-stone-300 bg-white px-4 py-3 text-sm outline-none focus:border-orange-500';
+
+const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
@@ -24,6 +28,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 export function ProductForm({ product }: { product?: Product }) {
   const router = useRouter();
   const categories = useApiData<Category[]>('/categories');
+  const fileInput = useRef<HTMLInputElement>(null);
 
   const [v, setV] = useState({
     name: product?.name ?? '',
@@ -37,6 +42,30 @@ export function ProductForm({ product }: { product?: Product }) {
   });
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  async function onFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // lets the admin pick the same file again later
+    if (!file) return;
+
+    setError(null);
+    // Quick feedback only. The server checks everything again.
+    if (!ALLOWED_TYPES.includes(file.type)) return setError('Please choose a JPG, PNG or WebP image');
+    if (file.size > MAX_IMAGE_BYTES) return setError('The image must be 2 MB or smaller');
+
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const res = await apiFetch<{ url: string }>('/admin/uploads/image', { method: 'POST', body });
+      setV((prev) => ({ ...prev, imageUrl: res.url }));
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Image upload failed');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -114,8 +143,44 @@ export function ProductForm({ product }: { product?: Product }) {
         </Field>
       </div>
 
-      <Field label="Image URL" hint="Paste a link to an image (https://...). Leave empty for no image.">
-        <input className={inputClass} value={v.imageUrl} onChange={(e) => setV({ ...v, imageUrl: e.target.value })} />
+      <Field label="Product image" hint="JPG, PNG or WebP, up to 2 MB.">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex h-28 w-40 items-center justify-center overflow-hidden rounded-xl border border-dashed border-stone-300 bg-stone-50">
+            {v.imageUrl ? (
+              <Image
+                src={v.imageUrl}
+                alt="Product preview"
+                width={160}
+                height={112}
+                unoptimized
+                className="h-28 w-40 object-cover"
+              />
+            ) : (
+              <span className="text-xs text-stone-400">No image</span>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={onFileChange} />
+            <button
+              type="button"
+              disabled={uploading}
+              onClick={() => fileInput.current?.click()}
+              className="block rounded-full border border-stone-300 bg-white px-5 py-2 text-sm font-semibold hover:border-orange-400 disabled:opacity-60"
+            >
+              {uploading ? 'Uploading…' : v.imageUrl ? 'Replace image' : 'Upload image'}
+            </button>
+            {v.imageUrl && !uploading && (
+              <button
+                type="button"
+                onClick={() => setV({ ...v, imageUrl: '' })}
+                className="text-sm font-semibold text-red-600 hover:underline"
+              >
+                Remove image
+              </button>
+            )}
+          </div>
+        </div>
       </Field>
 
       <div className="flex flex-wrap gap-6 text-sm font-medium">
@@ -134,7 +199,7 @@ export function ProductForm({ product }: { product?: Product }) {
       <div className="flex gap-3">
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || uploading}
           className="rounded-full bg-orange-600 px-6 py-3 font-semibold text-white hover:bg-orange-700 disabled:opacity-60"
         >
           {saving ? 'Saving…' : product ? 'Save changes' : 'Create product'}

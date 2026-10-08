@@ -11,10 +11,13 @@ export class ApiError extends Error {
 const BASE = typeof window === 'undefined' ? (process.env.API_URL ?? 'http://localhost:4000') : '';
 
 export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+  // File uploads (FormData) must NOT get a JSON content type: the browser adds the right one
+  const isFormData = typeof FormData !== 'undefined' && init.body instanceof FormData;
+
   const res = await fetch(`${BASE}/api/v1${path}`, {
     ...init,
     headers: {
-      'Content-Type': 'application/json',
+      ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
       ...(init.headers as Record<string, string> | undefined),
     },
     credentials: 'include',
