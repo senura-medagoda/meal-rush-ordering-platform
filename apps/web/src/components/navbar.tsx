@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { LogOut, ShoppingBag } from 'lucide-react';
+import { LogOut, ShoppingBag, User } from 'lucide-react';
 import { useCartStore } from '@/store/cart';
 import { useAuthStore } from '@/store/auth';
 import { useMounted } from '@/hooks/use-mounted';
@@ -35,7 +35,7 @@ export function Navbar() {
           Meal<span className="text-orange-600">Rush</span>
         </Link>
 
-        <nav className="flex items-center gap-4 text-sm font-medium sm:gap-6">
+        <nav className="flex items-center gap-4 text-sm font-medium sm:gap-5">
           <Link href="/" className="hidden hover:text-orange-600 sm:inline">
             Home
           </Link>
@@ -51,14 +51,26 @@ export function Navbar() {
 
           {loaded &&
             (user ? (
-              <button
-                onClick={handleLogout}
-                className="inline-flex items-center gap-1 text-stone-600 hover:text-orange-600"
-                title="Log out"
-              >
-                <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
-                <LogOut size={18} />
-              </button>
+              <>
+                {user.role === 'CUSTOMER' && (
+                  <Link
+                    href="/profile"
+                    className="inline-flex items-center gap-1 hover:text-orange-600"
+                    title="My profile and orders"
+                  >
+                    <User size={18} />
+                    <span className="hidden sm:inline">{user.name.split(' ')[0]}</span>
+                  </Link>
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="text-stone-600 hover:text-orange-600"
+                  title="Log out"
+                  aria-label="Log out"
+                >
+                  <LogOut size={18} />
+                </button>
+              </>
             ) : (
               <Link href="/login" className="hover:text-orange-600">
                 Log in
